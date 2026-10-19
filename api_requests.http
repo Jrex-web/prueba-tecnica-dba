@@ -1,0 +1,25 @@
+### 1. Probar que la API esté viva
+GET http://127.0.0
+Accept: application/json
+
+###
+
+### 2. Enviar un usuario a MySQL (Puerto Docker 3307)
+POST http://127.0.0mysql/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Carlos Mendoza",
+  "email": "carlos@ejemplo.com"
+}
+
+###
+
+### 3. Enviar un usuario a MongoDB (Puerto Docker 27017)
+POST http://127.0.0mongodb/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Ana Gomez",
+  "email": "ana@ejemplo.com"
+}

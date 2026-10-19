@@ -1,0 +1,35 @@
+# --- Entornos Virtuales ---
+env/
+venv/
+ENV/
+.env/
+
+# --- Archivos de Base de Datos y Volúmenes de Docker ---
+# Evita subir los datos duros guardados de MySQL, Postgres o Mongo locales
+.docker/
+docker-data/
+postgres_data/
+mysql_data/
+mongo_data/
+
+# --- Archivos temporales de Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+htmlcov/
+.toml
+
+# --- Configuraciones del Editor (Opcional) ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# --- Sistema Operativo ---
+.DS_Store
+Thumbs.db
