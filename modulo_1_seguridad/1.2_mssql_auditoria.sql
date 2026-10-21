@@ -1,3 +1,5 @@
+SELECT @@SERVERNAME;
+
 -- =============================================================================
 -- PRUEBA TÉCNICA DBA - MÓDULO 1.2: MSSQL AUDITORÍA Y ENMASCARAMIENTO DE DATOS
 -- Sistema de Recursos Humanos (Tabla: employees)
@@ -108,9 +110,10 @@ BEGIN
 END
 GO
 
+USE MASTER
 CREATE SERVER AUDIT [HR_Select_Audit]
 TO FILE 
-(   FILEPATH = 'C:\SQLAudit\' -- Asegurar que esta ruta exista en el servidor de destino
+(   FILEPATH = 'C:\SQL2022\' -- Asegurar que esta ruta exista en el servidor de destino
     ,MAXSIZE = 50 MB
     ,MAX_ROLLOVER_FILES = 10
     ,RESERVE_DISK_SPACE = OFF
@@ -152,4 +155,75 @@ REVERT;
 EXECUTE AS USER = 'hr_manager';
 SELECT * FROM dbo.employees;
 REVERT;
+
+-- Leer los eventos capturados por la auditoría
+
+EXECUTE AS USER = 'hr_manager';
+
+-- Leer los eventos capturados por la auditoría
+SELECT event_time,sequence_number,action_id,succeeded,permission_bitmask,is_column_permission,session_id,server_principal_id,database_principal_id,target_server_principal_id,target_database_principal_id,object_id,class_type,session_server_principal_name,server_principal_name,server_principal_sid,database_principal_name,target_server_principal_name,target_server_principal_sid,target_database_principal_name,server_instance_name,database_name,schema_name,object_name,statement,additional_information,file_name,audit_file_offset,user_defined_event_id,user_defined_information,audit_schema_version,sequence_group_id,transaction_id,client_ip,application_name,duration_milliseconds,response_rows,affected_rows,connection_id,data_sensitivity_information,host_name,session_context,client_tls_version,client_tls_version_name,database_transaction_id,ledger_start_sequence_number,external_policy_permissions_checked
+FROM sys.fn_get_audit_file('C:\SQLAudit\*', DEFAULT, DEFAULT);
+-- exec from master
+
+-- 1. Si ya existe, la apagamos y la borramos para evitar duplicados
+USE MASTER
+IF EXISTS (SELECT * FROM sys.server_audits WHERE name = 'HR_Select_Audit')
+BEGIN
+    ALTER SERVER AUDIT [HR_Select_Audit] WITH (STATE = OFF);
+    DROP SERVER AUDIT [HR_Select_Audit];
+END
+GO
+
+-- 2. La creamos apuntando directamente al disco C para evitar bloqueos de subcarpetas
+CREATE SERVER AUDIT [HR_Select_Audit]
+TO FILE ( FILEPATH = 'C:\' ) 
+WITH (QUEUE_DELAY = 1000, ON_FAILURE = CONTINUE);
+GO
+
+-- 3. La encendemos
+ALTER SERVER AUDIT [HR_Select_Audit] WITH (STATE = ON);
+GO
+
+-- 4. Asociamos la especificación en la base de datos del examen
+USE HR_Production;
+GO
+
+
+IF EXISTS (SELECT * FROM sys.database_audit_specifications WHERE name = 'HR_Employees_Select_Spec')
+BEGIN
+    ALTER DATABASE AUDIT SPECIFICATION [HR_Employees_Select_Spec] WITH (STATE = OFF);
+    DROP DATABASE AUDIT SPECIFICATION [HR_Employees_Select_Spec];
+END
+GO
+
+CREATE DATABASE AUDIT SPECIFICATION [HR_Employees_Select_Spec]
+FOR SERVER AUDIT [HR_Select_Audit]
+ADD (SELECT ON dbo.employees BY report_viewer)
+WITH (STATE = ON);
+GO
+
+Conections
+USE master;
+GO
+EXEC xp_instance_regwrite N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\MSSQLServer', N'LoginMode', REG_DWORD, 2;
+GO
+-----------------------------------------
+
+
+USE master;
+GO
+
+-- Asegurar que los Logins del servidor tengan las contraseñas correctas y estén habilitados
+ALTER LOGIN report_viewer_login WITH PASSWORD = 'SecurePassword123!', CHECK_POLICY = OFF;
+ALTER LOGIN report_viewer_login ENABLE;
+GO
+
+ALTER LOGIN hr_manager_login WITH PASSWORD = 'SecurePassword456!', CHECK_POLICY = OFF;
+ALTER LOGIN hr_manager_login ENABLE;
+GO
+----------------------------------------------
+
+
+
 */
+

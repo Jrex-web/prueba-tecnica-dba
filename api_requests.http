@@ -1,21 +1,42 @@
+### get Instructions
+
 ### 1. Probar que la API esté viva
-GET http://127.0.0
+GET http://127.0.1:8000
 Accept: application/json
 
-###
+### 2.  inicio__get
+GET http://localhost:8000/docs#/default/inicio__get 
 
-### 2. Enviar un usuario a MySQL (Puerto Docker 3307)
-POST http://127.0.0mysql/usuarios
+### Obtener usuarios de MySQL
+GET http://localhost:8000/mysql/usuarios
+Accept: application/json
+
+### Obtener usuarios de MongoDB
+GET http://localhost:8000/mongodb/usuarios
+Accept: application/json
+
+
+
+### 3. Obtener todos los datos de mi base de datos o API
+GET http://localhost:8000/api/usuarios
+Content-Type: application/json
+
+
+### 4. Probar tu contenedor de MongoDB (Si usas una API intermedia)
+GET http://localhost:3000/mongo-status
+
+### post Instructions
+
+### 1. Enviar un usuario a MySQL (A través de la API)
+POST http://localhost:8000/mysql/usuarios
 Content-Type: application/json
 
 {
-  "nombre": "Carlos Mendoza",
-  "email": "carlos@ejemplo.com"
+    "nombre": "Carlos Mendoza",
+    "email": "carlos@ejemplo.com"
 }
 
-###
-
-### 3. Enviar un usuario a MongoDB (Puerto Docker 27017)
+### 2. Enviar un usuario a MongoDB (Puerto Docker 27017)
 POST http://127.0.0mongodb/usuarios
 Content-Type: application/json
 
@@ -23,3 +44,32 @@ Content-Type: application/json
   "nombre": "Ana Gomez",
   "email": "ana@ejemplo.com"
 }
+
+
+### 3. Insertar un nuevo registro (Ejemplo POST)
+POST http://localhost:8080/api/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Nuevo Usuario",
+  "rol": "admin"
+}
+
+
+POST http://localhost:8000/mysql/usuarios
+
+
+### Testing
+### 1. Insertar un evento usando el Rol de Escritor (Debe dar 200 OK)
+POST http://localhost:8000/mongodb/usuarios
+Content-Type: application/json
+
+{
+    "user_ip": "192.168.1.50",
+    "user_agent": "Mozilla/5.0 Windows",
+    "evento": "Login Exitoso"
+}
+
+### 2. Leer eventos usando el Rol de Analista (Debe dar 200 OK con los datos)
+GET http://localhost:8000/mongodb/usuarios
+Accept: application/json
